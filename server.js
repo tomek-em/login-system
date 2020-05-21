@@ -11,7 +11,6 @@ const flash = require('express-flash');
 const session = require('express-session');
 const methodOverride = require('method-override');
 
-// db file
 const connectDB = require('./db');
 
 const app = express();
@@ -19,8 +18,6 @@ const app = express();
 connectDB();
 const Usr = require('./models/User');
 
-// users data. dev only not acceptable in production
-const users = [];
 // initialize Passport for hardcoded user
 initializePassport(
   passport
@@ -28,24 +25,6 @@ initializePassport(
   // id => users.find(user => user.id === id)
 );
 
-function initialize() {
-  console.log('init');
-  // Usr.findOne({
-  //   email: 'user@post.com'
-  // })
-  // .then(function(response){
-  //   if(response != null) {
-  //     res.render('index.ejs', { name: response.name });
-  //     console.log(response.id);
-  //     users.push(response);
-  //     console.log(users);
-  //   } else {
-  //
-  //   }
-  // });
-}
-
-// initialize();
 
 // set view engine to ejs & to be able to send params to ejs files
 app.set('view-engine', 'ejs');
@@ -97,18 +76,10 @@ app.get('/register', checkNotAuthenticated, (req, res) => {
   res.render('register.ejs');
 });
 
-// Route to register POST, on form submit (async beause of bcrypt)
+// Route to register POST, on form submit
 app.post('/register', checkNotAuthenticated, async (req, res) => {
   try {
-    const hashedPassword = await bcrypt.hash(req.body.password, 10); // bcypt is async, 10 safety level, default
-
-    // save to user obj
-    // users.push({
-    //   id: Date.now().toString(),  // generates unic key form date, AUTOMATICLY generated if use MONGODB
-    //   name: req.body.name,
-    //   email: req.body.email,    //req.body.email = <input name="email>
-    //   password: hashedPassword
-    // });
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
     // Save User to db
     let u = await Usr.findOne({ email: req.body.email });

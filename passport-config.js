@@ -27,8 +27,8 @@ function initialize(passport) {
       } else {
         // return done(null, false, {message: 'User found'});
         users.push(user);
-        getUserByEmail = (email) => users.find(user => user.email === email);
-        getUserById = (id) => users.find(user => user.id === id);
+        // getUserByEmail = (email) => users.find(user => user.email === email);
+        // getUserById = (id) => users.find(user => user.id === id);
       }
 
       // compare form password with saved user.password
