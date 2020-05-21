@@ -1,17 +1,36 @@
 const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcrypt');
 
-function initialize(passport, getUserByEmail, getUserById) {
+const User = require('./models/User');
+
+let users = [];
+function initialize(passport) {
+  let getUserByEmail;
+  let getUserById;
+
   const authenticateUser = async (email, password, done) => {
     // check email
-    const user = getUserByEmail(email);
-    if(user == null) {
-      // console.log(email, ' user.email ', user.email);
-      return done(null, false, {message: 'No user found'});  // null -> err if use database
-    }
+    // const user = getUserByEmail(email);
+    // if(user == null) {
+    //   // console.log(email, ' user.email ', user.email);
+    //   return done(null, false, {message: 'No user found'});  // null -> err if use database
+    // }
 
-    // check pass
+    // check user and pass
     try {
+      user = await User.findOne({ email });
+
+      console.log(user)
+
+      if (!user) {
+        return done(null, false, {message: 'No user found'});
+      } else {
+        // return done(null, false, {message: 'User found'});
+        users.push(user);
+        getUserByEmail = (email) => users.find(user => user.email === email);
+        getUserById = (id) => users.find(user => user.id === id);
+      }
+
       // compare form password with saved user.password
       if(await bcrypt.compare(password, user.password)) {
         return done(null, user);
@@ -23,6 +42,9 @@ function initialize(passport, getUserByEmail, getUserById) {
     } // end of try catch
   }
 
+  // let em = new LocalStrategy({ usernameField: 'email' }, authenticateUser);
+  // console.log('passport ', em, passport);
+
   passport.use(new LocalStrategy({ usernameField: 'email' },
   authenticateUser));
   passport.serializeUser((user, done) => done(null, user.id));
@@ -31,5 +53,4 @@ function initialize(passport, getUserByEmail, getUserById) {
   });
 }
 
-// export fun to be able to call it from server.js
 module.exports = initialize;

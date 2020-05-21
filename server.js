@@ -12,21 +12,40 @@ const session = require('express-session');
 const methodOverride = require('method-override');
 
 // db file
-// const db = require('./db');
+const connectDB = require('./db');
 
 const app = express();
 
-// const Usr = require('./models/User');
-// db();
-
-initializePassport(  //initialize passport, find user by email
-  passport,
-  email => users.find(user => user.email === email),
-  id => users.find(user => user.id === id)
-);
+connectDB();
+const Usr = require('./models/User');
 
 // users data. dev only not acceptable in production
 const users = [];
+// initialize Passport for hardcoded user
+initializePassport(
+  passport
+  // email => users.find(user => user.email === email)
+  // id => users.find(user => user.id === id)
+);
+
+function initialize() {
+  console.log('init');
+  // Usr.findOne({
+  //   email: 'user@post.com'
+  // })
+  // .then(function(response){
+  //   if(response != null) {
+  //     res.render('index.ejs', { name: response.name });
+  //     console.log(response.id);
+  //     users.push(response);
+  //     console.log(users);
+  //   } else {
+  //
+  //   }
+  // });
+}
+
+// initialize();
 
 // set view engine to ejs & to be able to send params to ejs files
 app.set('view-engine', 'ejs');
@@ -42,24 +61,22 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(methodOverride('_method'));
 
-// Route to home
-app.get('/', checkAuthenticated, (req, res) => {  // see checkAuthenticate fun below at the end, if there is no user redirect to login
+// Route to homepage - see checkAuthenticate fun below at the end, if there is no user redirect to login
+app.get('/', checkAuthenticated, (req, res) => {
   res.render('index.ejs', { name: req.user.name });
 });
 
-// app.get('/', (req, res) => {  // see checkAuthenticate fun below at the end, if there is no user redirect to login
-//   // res.render('index.ejs', { name: 'John' });
-//
+// app.get('/', (req, res) => {
 //   //read user from db
-//   u = new Usr({
-//     name: 'user1',
-//     email: 'user1@post.com',
-//     password: 'pass1'
-//   });
-//   u.save()
-//   .then(() => {
-//     console.log('user saved');
-//     res.render('index.ejs', { name: 'You are not logged in' });
+//   Usr.findOne({
+//     email: 'user@post.com'
+//   })
+//   .then(function(response){
+//     if(response != null) {
+//       res.render('index.ejs', { name: response.name });
+//     } else {
+//       res.render('index.ejs', { name: 'You are not logged in' });
+//     }
 //   });
 // });
 
@@ -84,14 +101,33 @@ app.get('/register', checkNotAuthenticated, (req, res) => {
 app.post('/register', checkNotAuthenticated, async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(req.body.password, 10); // bcypt is async, 10 safety level, default
-    users.push({
-      id: Date.now().toString(),  // generates unic key form date, AUTOMATICLY generated if use MONGODB
+
+    // save to user obj
+    // users.push({
+    //   id: Date.now().toString(),  // generates unic key form date, AUTOMATICLY generated if use MONGODB
+    //   name: req.body.name,
+    //   email: req.body.email,    //req.body.email = <input name="email>
+    //   password: hashedPassword
+    // });
+
+    // Save User to db
+    let u = await Usr.findOne({ email: req.body.email });
+    if (u) {
+      return res.status(400).json({ msg: 'User already exists' });
+    }
+
+    u = new Usr({
       name: req.body.name,
-      email: req.body.email,    //req.body.email = <input name="email>
+      email: req.body.email,
       password: hashedPassword
     });
+    u.save()
+    .then(() => {
+      console.log('user saved');
+      res.redirect('/');
+    });
 
-    res.redirect('/login');
+    // res.redirect('/login');
   } catch {
     res.redirect('/register');
   }
