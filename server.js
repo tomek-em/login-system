@@ -18,17 +18,15 @@ const app = express();
 connectDB();
 const Usr = require('./models/User');
 
-// initialize Passport for hardcoded user
+// initialize Passport
 initializePassport(
   passport
-  // email => users.find(user => user.email === email)
-  // id => users.find(user => user.id === id)
 );
 
 
-// set view engine to ejs & to be able to send params to ejs files
+// set view engine to ejs
 app.set('view-engine', 'ejs');
-// to be able to use in express data from form inputs(eg. req.body.email = <input name="email>):
+
 app.use(express.urlencoded({ extended: false }));
 app.use(flash());
 app.use(session({
@@ -40,24 +38,10 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(methodOverride('_method'));
 
-// Route to homepage - see checkAuthenticate fun below at the end, if there is no user redirect to login
+// Route to homepage
 app.get('/', checkAuthenticated, (req, res) => {
   res.render('index.ejs', { name: req.user.name });
 });
-
-// app.get('/', (req, res) => {
-//   //read user from db
-//   Usr.findOne({
-//     email: 'user@post.com'
-//   })
-//   .then(function(response){
-//     if(response != null) {
-//       res.render('index.ejs', { name: response.name });
-//     } else {
-//       res.render('index.ejs', { name: 'You are not logged in' });
-//     }
-//   });
-// });
 
 // Route to login
 app.get('/login', checkNotAuthenticated, (req, res) => {
@@ -98,11 +82,9 @@ app.post('/register', checkNotAuthenticated, async (req, res) => {
       res.redirect('/');
     });
 
-    // res.redirect('/login');
   } catch {
     res.redirect('/register');
   }
-  console.log(users);
 });
 
 
@@ -113,10 +95,9 @@ app.delete('/logout', (req, res) => {
 })
 
 
-// check if there is authenticated user for session
 function checkAuthenticated(req, res, next) {
   if(req.isAuthenticated()) {
-    // let function using checkAuthenticate to continue
+
     return next();
   } else {
     // no authenticated user return to login
