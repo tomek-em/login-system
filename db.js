@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 
 function db () {
 
-  mongoose.connect('mongodb+srv://user1:pass1@cluster0-7eian.mongodb.net/test?retryWrites=true&w=majority', { useNewUrlParser: true,
+  mongoose.connect('mongodb+srv://user1:<pass>@cluster0-7eian.mongodb.net/test?retryWrites=true&w=majority', { useNewUrlParser: true,
   useUnifiedTopology: true, } );
 
   mongoose.connection.once('open', function() {
